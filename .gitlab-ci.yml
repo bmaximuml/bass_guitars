@@ -1,0 +1,36 @@
+stages:
+  - build_python
+  - build_rust
+  - build_go
+  - semantic_release
+
+variables:
+  SCRAPE_URLS: ""  # Set your default URL list here or leave it empty
+
+build_python:
+  image: python:3.x
+  stage: build_python
+  script:
+    - pip install -r requirements.txt
+    - python tests.py
+
+build_rust:
+  image: rust:latest
+  stage: build_rust
+  script:
+    - cargo test
+
+build_go:
+  image: golang:latest
+  stage: build_go
+  script:
+    - go test ./...
+
+semantic_release:
+  image: node:14
+  stage: semantic_release
+  script:
+    - npm install -g semantic-release
+    - npx semantic-release
+  only:
+    - main
