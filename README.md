@@ -20,6 +20,7 @@ Bass Guitar Scraper is a tool to scrape information about bass guitars from vari
 python scraper.py [URL1] [URL2] ...
 ```
 Replace [URL1], [URL2], etc. with the URLs you want to scrape.
+- `--selector`, -s SELECTOR : CSS selector to use for scraping. Defaults to "h3.bass-guitar-name".
 
 ### Rust
 
@@ -27,7 +28,8 @@ bash
 ```
 cargo run -- [URL1] [URL2] ...
 ```
-Replace [URL1], [URL2], etc. with the URLs you want to scrape.
+- Replace [URL1], [URL2], etc. with the URLs you want to scrape.
+- `--selector SELECTOR` : CSS selector to use for scraping. Defaults to "h3.bass-guitar-name".
 
 ### Go
 
@@ -35,7 +37,8 @@ bash
 ```
 go run main.go -urls=[URL1],[URL2],...
 ```
-Replace [URL1], [URL2], etc. with the URLs you want to scrape.
+- Replace [URL1], [URL2], etc. with the URLs you want to scrape.
+- `-selector SELECTOR` : CSS selector to use for scraping. Defaults to "h3.bass-guitar-name".
 
 ## Contribution
 
