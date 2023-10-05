@@ -1,42 +1,42 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"os"
+	"strings"
+
 	"github.com/PuerkitoBio/goquery"
-	"net/http"
 )
 
-func scrapeBassGuitarInfo(url string) {
-	response, err := http.Get(url)
-	if err != nil {
-		fmt.Println("Failed to fetch the webpage")
-		return
-	}
-	defer response.Body.Close()
+func parseArguments() ([]string, string) {
+	var urls string
+	var selector string
+	flag.StringVar(&urls, "urls", os.Getenv("SCRAPE_URLS"), "URLs to scrape, separated by space")
+	flag.StringVar(&selector, "selector", os.Getenv("SELECTOR"), "CSS selector to use for scraping")
+	flag.Parse()
 
-	if response.StatusCode != http.StatusOK {
-		fmt.Println("Failed to fetch the webpage")
-		return
-	}
-
-	doc, err := goquery.NewDocumentFromReader(response.Body)
-	if err != nil {
-		fmt.Println("Error reading the response body:", err)
-		return
-	}
-
-	// Scrape relevant information from the webpage
-	// Example: Get bass guitar names and features
-	doc.Find(".bass-guitar-name").Each(func(index int, element *goquery.Selection) {
-		fmt.Printf("Bass Guitar Name: %s\n", element.Text())
+	urlList := strings.FieldsFunc(urls, func(r rune) bool {
+		return r == ',' || r == ';'
 	})
 
-	doc.Find(".bass-guitar-features").Each(func(index int, element *goquery.Selection) {
-		fmt.Printf("Bass Guitar Features: %s\n", element.Text())
-	})
+	return urlList, selector
+}
+
+func scrapeBassGuitarInfo(urls []string, selector string) {
+	for _, url := range urls {
+		response, err := goquery.NewDocument(url)
+		if err != nil {
+			println("Failed to fetch the webpage")
+			continue
+		}
+
+		response.Find(selector).Each(func(index int, element *goquery.Selection) {
+			println(element.Text())
+		})
+	}
 }
 
 func main() {
-	url := "https://example.com/bass_guitars"
-	scrapeBassGuitarInfo(url)
+	urls, selector := parseArguments()
+	scrapeBassGuitarInfo(urls, selector)
 }

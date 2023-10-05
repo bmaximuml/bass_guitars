@@ -1,23 +1,30 @@
-import requests
+import argparse
+import os
 from bs4 import BeautifulSoup
+import requests
 
-def scrape_bass_guitar_info(url):
-    response = requests.get(url)
-    if response.status_code != 200:
-        print("Failed to fetch the webpage")
-        return None
-    
-    soup = BeautifulSoup(response.content, 'html.parser')
-    
-    # Scrape relevant information from the webpage
-    # Example: Get bass guitar names and features
-    bass_guitar_names = [element.text for element in soup.find_all('h3', class_='bass-guitar-name')]
-    bass_guitar_features = [element.text for element in soup.find_all('div', class_='bass-guitar-features')]
-    
-    return bass_guitar_names, bass_guitar_features
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Bass Guitar Scraper")
+    parser.add_argument("urls", nargs="*", default=os.getenv("SCRAPE_URLS", "").split(";"),
+                        help="URLs to scrape, separated by space")
+    parser.add_argument("--selector", "-s", default=os.getenv("SELECTOR", "h3.bass-guitar-name"),
+                        help="CSS selector to use for scraping")
+    args = parser.parse_args()
+    return args
 
-# Example usage
-url = "https://example.com/bass_guitars"
-bass_guitar_names, bass_guitar_features = scrape_bass_guitar_info(url)
-print("Bass Guitar Names:", bass_guitar_names)
-print("Bass Guitar Features:", bass_guitar_features)
+def scrape_bass_guitar_info(urls, selector):
+    for url in urls:
+        response = requests.get(url)
+        if response.status_code != 200:
+            print("Failed to fetch the webpage")
+            continue
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        elements = soup.select(selector)
+        # Extract information based on the provided selector
+        for element in elements:
+            print(element.text)
+
+if __name__ == "__main__":
+    args = parse_arguments()
+    scrape_bass_guitar_info(args.urls, args.selector)
