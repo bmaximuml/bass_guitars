@@ -1,35 +1,32 @@
-use clap::{App, Arg};
-use dotenv::dotenv;
-use std::env;
+use clap::{Arg, ArgAction, Command, value_parser};
 use reqwest::blocking::get;
 use select::document::Document;
-use select::predicate::Predicate;
 use select::predicate::Class;
 
-fn parse_arguments() {
-    dotenv().ok();
-
-    let matches = App::new("Bass Guitar Scraper")
-        .arg(Arg::with_name("urls")
-            .value_name("URLs")
-            .multiple(true)
-            .help("URLs to scrape, separated by space")
-            .default_value(&env::var("SCRAPE_URLS").unwrap_or_default())
-            .use_delimiter(true))
-        .arg(Arg::with_name("selector")
-            .short("s")
+fn parse_arguments() -> (Vec<String>, String) {
+    let matches = Command::new("Bass Guitar Scraper")
+        .arg(Arg::new("urls")
+            .action(ArgAction::Append)
+            .value_parser(value_parser!(String))
+            .short('u')
+            .long("url")
+            .value_name("urls")
+            // .multiple_values(true)
+            .help("URLs to scrape, separated by comma"))
+        .arg(Arg::new("selector")
+            .short('s')
             .long("selector")
-            .value_name("SELECTOR")
+            .value_name("selector")
             .help("CSS selector to use for scraping")
-            .default_value(&env::var("SELECTOR").unwrap_or("h3.bass-guitar-name".to_string())))
+            .default_value("h3.bass-guitar-name"))
         .get_matches();
 
-    let urls: Vec<&str> = matches.values_of("urls").unwrap_or_default().collect();
-    let selector = matches.value_of("selector").unwrap_or("h3.bass-guitar-name");
-    scrape_bass_guitar_info(&urls, selector);
+    let urls: Vec<String> = matches.get_many("urls").expect("URLs is required").cloned().collect();
+    let selector = matches.get_one::<String>("selector").unwrap().to_string();
+    (urls, selector)
 }
 
-fn scrape_bass_guitar_info(urls: &[&str], selector: &str) {
+fn scrape_bass_guitar_info(urls: &[String], selector: &str) {
     for url in urls {
         let response = get(url);
         match response {
@@ -49,5 +46,6 @@ fn scrape_bass_guitar_info(urls: &[&str], selector: &str) {
 }
 
 fn main() {
-    parse_arguments();
+    let (urls, selector) = parse_arguments();
+    scrape_bass_guitar_info(&urls, &selector);
 }
